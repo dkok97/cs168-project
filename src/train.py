@@ -130,7 +130,7 @@ def train_model(model, train_batches, validation_batches, test_batches):
     return history
 
 def train_model_fine(base_model, model, history, train_batches, validation_batches, test_batches, model_name):
-    initial_epochs = 30
+    initial_epochs = 20
     validation_steps = 20
 
     base_model.trainable = True
@@ -144,7 +144,7 @@ def train_model_fine(base_model, model, history, train_batches, validation_batch
               optimizer = tf.keras.optimizers.RMSprop(lr=base_learning_rate/10),
               metrics=['accuracy'])
     
-    fine_tune_epochs = 10
+    fine_tune_epochs = 20
     total_epochs =  initial_epochs + fine_tune_epochs
     
     history_fine = model.fit(train_batches, epochs=total_epochs, initial_epoch =  history.epoch[-1], validation_data=validation_batches)

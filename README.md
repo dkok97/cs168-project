@@ -10,18 +10,18 @@
 
 ## How to run
 
-*Create a virtual environment and activate it (Use python 3)
+* Create a virtual environment and activate it (Use python 3)
 ```
 virtualenv venv
 source venv/bin/activate
 ```
 
-*Install requirements
+* Install requirements
 ```
 pip3 install -r requirements.txt
 ```
 
-*Create an images directory (in the root of the folder) with the following structure:
+* Create an images directory (in the root of the folder) with the following structure:
 ```
 images
 └───BENIGN
@@ -34,7 +34,7 @@ images
 │   │   ...
 ```
 
-*Go to src/ and run the following command with appropriate parameters
+* Go to src/ and run the following command with appropriate parameters
 ```
 python3 train.py --data_dir=../images --model_nane={name to save model with}
 ```
