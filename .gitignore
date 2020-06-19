@@ -7,4 +7,4 @@ images-color/
 train-images-color/
 val-images-color/
 test-images-color/
-saved_model/no_pretrain_30epochs
+saved_model/

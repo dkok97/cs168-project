@@ -2,8 +2,10 @@
 
 ## Directory Structure
 
-Train, Validatation, and Test images were omitted from the repo due to their large size.
+Train, Validatation, Test images, and saved models were omitted from the repo due to their large size.
 These images were generated using the scripts in this [repository](https://github.com/kahsieh/renal-lesion-classifier-mirror)
+
+You can access saved models and images at this [drive](https://drive.google.com/drive/folders/1Za943CRFuASqDN2nDoW3d0bRcRnGgR-g?usp=sharing)
 
 1. src/: all the code
     1. saved_model/: Weights and Models saved from training (see name for description)
