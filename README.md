@@ -18,18 +18,18 @@ These images were generated using the scripts in this [repository](https://githu
 
 ## How to run
 
-* Create a virtual environment and activate it (Use python 3)
+- Create a virtual environment and activate it (Use python 3)
 ```
 virtualenv venv
 source venv/bin/activate
 ```
 
-* Install requirements
+- Install requirements
 ```
 pip3 install -r requirements.txt
 ```
 
-* Create an images directory (in the root of the folder) with the following structure:
+- Create an images directory (in the root of the folder) with the following structure:
 ```
 images
 └───BENIGN
@@ -42,10 +42,10 @@ images
 │   │   ...
 ```
 
-* Go to src/ and run the following command with appropriate parameters
+- Go to src/ and run the following command with appropriate parameters
 ```
 python3 old-train.py --data_dir=../images --model_nane={name to save model with}
 ```
 Model with be saved at src/saved_model/{model_name}
 
-* If you wish to run the cs168_ python scripts (improved and optimized), open them using Google Colab and set runtime processor to GPU. This would require you to upload the training and testing data to your google drive so as to give the python notebook access to the data.
+- If you wish to run the cs168_ python scripts (improved and optimized), open them using Google Colab and set runtime processor to GPU. This would require you to upload the training and testing data to your google drive so as to give the python notebook access to the data.
