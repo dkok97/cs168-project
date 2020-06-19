@@ -1,2 +1,9 @@
 venv
 images/
+train-images/
+val-images/
+test-images/
+images-color/
+train-images-color/
+val-images-color/
+test-images-color/

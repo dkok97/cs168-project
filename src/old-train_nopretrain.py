@@ -11,10 +11,10 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 DS_SIZE = 918
-BATCH_SIZE = 32
-IMG_SIZE = 224
-IMG_HEIGHT = 224
-IMG_WIDTH = 224
+BATCH_SIZE = 128
+IMG_SIZE = 256
+IMG_HEIGHT = 256
+IMG_WIDTH = 256
 CLASS_NAMES = None
 
 #-----------------LOAD DATA----------------------#
@@ -33,7 +33,6 @@ def decode_img(img):
     # Use `convert_image_dtype` to convert to floats in the [0,1] range.
     img = tf.image.convert_image_dtype(img, tf.float32)
     # resize the image to the desired size.
-    img = (img/127.5) - 1
     return tf.image.resize(img, [IMG_HEIGHT, IMG_WIDTH])
 
 def process_path(file_path):
@@ -63,14 +62,14 @@ def load_data(data_dir):
 
 #------------PREPARE FOR TRAINING----------------#
 
-def show_batch(image_batch, label_batch):
-    plt.figure(figsize=(10,10))
-    for n in range(25):
-        ax = plt.subplot(5,5,n+1)
-        plt.imshow(image_batch[n])
-        plt.title(CLASS_NAMES[label_batch[n]==1][0].title())
-        plt.axis('off')
-    plt.savefig('pic.png')
+def plotImages(images_arr):
+    fig, axes = plt.subplots(1, 5, figsize=(20,20))
+    axes = axes.flatten()
+    for img, ax in zip( images_arr, axes):
+        ax.imshow(img)
+        ax.axis('off')
+    plt.tight_layout()
+    plt.savefig('sample.png')
 
 def split_dataset_and_prepare(ds, cache=True, shuffle_buffer_size=1000):
     train_size = int(0.7 * DS_SIZE)
@@ -78,6 +77,7 @@ def split_dataset_and_prepare(ds, cache=True, shuffle_buffer_size=1000):
     test_size = int(0.15 * DS_SIZE)
 
     train_dataset = ds.take(train_size)
+    # train_dataset = train_dataset.repeat()
     test_dataset = ds.skip(train_size)
     val_dataset = ds.skip(val_size)
     test_dataset = ds.take(test_size)
@@ -94,42 +94,56 @@ def split_dataset_and_prepare(ds, cache=True, shuffle_buffer_size=1000):
 
 def load_model():
     IMG_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
-    base_model = tf.keras.applications.MobileNetV2(input_shape=IMG_SHAPE, include_top=False, weights='imagenet')
+    model = tf.keras.Sequential([
+        tf.keras.layers.Conv2D(16, 3, padding='same', activation='relu', input_shape=(IMG_HEIGHT, IMG_WIDTH ,3)),
+        tf.keras.layers.MaxPooling2D(),
+        tf.keras.layers.Conv2D(32, 3, padding='same', activation='relu'),
+        tf.keras.layers.MaxPooling2D(),
+        tf.keras.layers.Conv2D(64, 3, padding='same', activation='relu'),
+        tf.keras.layers.MaxPooling2D(),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(512, activation='relu'),
+        tf.keras.layers.Dense(1)
+    ])
 
-    base_model.trainable = False
-
-    global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
-    prediction_layer = tf.keras.layers.Dense(1)
-    model = tf.keras.Sequential([base_model, global_average_layer, prediction_layer])
-
-    base_learning_rate = 0.0001
-    model.compile(optimizer=tf.keras.optimizers.RMSprop(lr=base_learning_rate),
+    model.compile(optimizer='adam',
               loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
               metrics=['accuracy'])
+    # base_learning_rate = 0.0001
+    # model.compile(optimizer=tf.keras.optimizers.RMSprop(lr=base_learning_rate),
+    #           loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+    #           metrics=['accuracy'])
               
-    return base_model, model
+    return model
 
 #------------------------------------------------#
 
 #------------------TRAIN-------------------------#
 
-def train_model(model, train_batches, validation_batches, test_batches):
-    initial_epochs = 20
+def train_model(model, train_batches, validation_batches, test_batches, model_name, save=False):
+    initial_epochs = 30
     validation_steps = 20
     
-    loss0, accuracy0 = model.evaluate(validation_batches, steps=validation_steps)
+    # loss0, accuracy0 = model.evaluate(validation_batches, steps=validation_steps)
 
-    print("initial loss: {:.2f}".format(loss0))
-    print("initial accuracy: {:.2f}".format(accuracy0))
+    # print("initial loss: {:.2f}".format(loss0))
+    # print("initial accuracy: {:.2f}".format(accuracy0))
+
+    total_train = len(list(train_batches)) * BATCH_SIZE
+    total_val = len(list(validation_batches)) * BATCH_SIZE
+
     history = model.fit(train_batches, epochs=initial_epochs, validation_data=validation_batches)
 
     loss1, accuracy1 = model.evaluate(test_batches, steps=validation_steps)
     print("new loss: {:.2f}".format(loss1))
     print("new accuracy: {:.2f}".format(accuracy1))
 
+    if save:
+        model.save(model_name)
+
     return history
 
-def train_model_fine(base_model, model, history, train_batches, validation_batches, test_batches, model_name):
+def train_model_fine(base_model, model, history, train_batches, validation_batches, test_batches, model_name, save=False):
     initial_epochs = 20
     validation_steps = 20
 
@@ -147,13 +161,14 @@ def train_model_fine(base_model, model, history, train_batches, validation_batch
     fine_tune_epochs = 20
     total_epochs =  initial_epochs + fine_tune_epochs
     
-    history_fine = model.fit(train_batches, epochs=total_epochs, initial_epoch =  history.epoch[-1], validation_data=validation_batches)
+    history_fine = model.fit(train_batches, epochs=total_epochs, initial_epoch=history.epoch[-1], validation_data=validation_batches)
 
     loss1, accuracy1 = model.evaluate(test_batches, steps=validation_steps)
     print("new loss: {:.2f}".format(loss1))
     print("new accuracy: {:.2f}".format(accuracy1))
 
-    model.save('saved_model/' + model_name)
+    if save:
+        model.save('saved_model/' + model_name)
 
 #------------------------------------------------#
 
@@ -174,12 +189,11 @@ if __name__ == '__main__':
     FLAGS = parser.parse_args()
 
     labeled_ds = load_data(FLAGS.data_dir)
+
     train_batches, validation_batches, test_batches = split_dataset_and_prepare(labeled_ds)
     
-    base_model, model = load_model()
+    model = load_model()
     
-    history = train_model(model, train_batches, validation_batches, test_batches)
+    history = train_model(model, train_batches, validation_batches, test_batches, 'saved_model/' + FLAGS.model_name, save=True)
     
-    train_model_fine(base_model, model, history, train_batches, validation_batches, test_batches, FLAGS.model_name)
-
-    
+    # train_model_fine(base_model, model, history, train_batches, validation_batches, test_batches, FLAGS.model_name, save=True)
