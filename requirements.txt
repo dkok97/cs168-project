@@ -61,7 +61,7 @@ notebook==6.0.2
 numpy==1.18.5
 oauthlib==3.1.0
 opencv-contrib-python==3.4.2.16
-opencv-python==3.4.1.15
+opencv-python==3.4.7.28
 opt-einsum==3.2.0
 otter-grader==0.4.2
 pandas==0.25.3
